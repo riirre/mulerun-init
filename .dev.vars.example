@@ -1,0 +1,8 @@
+# Environment variables for local development
+AGENT_KEY=your-mulerun-agent-secret-key
+MULERUN_API_KEY=your-mulerun-api-token
+MULERUN_API_BASE=https://api.mulerun.com
+PRICING_MARKUP_MULTIPLIER=1
+DEV_SESSION_ALLOWLIST=dev-session-456
+SESSION_ALLOWED_ORIGINS=localhost,mulerun.com
+SESSION_VALIDATION_DISABLED=true

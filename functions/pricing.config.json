@@ -1,0 +1,82 @@
+{
+  "chatPricing": [
+    {
+      "key": "claude-sonnet-4",
+      "aliases": ["claude-sonnet-4-0", "claude-sonnet-4", "claude-sonnet4", "claude-sonnet-40"],
+      "inputCents": 315,
+      "outputCents": 1575
+    },
+    {
+      "key": "claude-opus-4",
+      "aliases": ["claude-opus-4"],
+      "inputCents": 1575,
+      "outputCents": 7875
+    },
+    {
+      "key": "claude-opus-4-1",
+      "aliases": ["claude-opus-4-1", "claude-opus-41", "claude-opus-4.1"],
+      "inputCents": 1575,
+      "outputCents": 7875
+    },
+    {
+      "key": "gpt-5",
+      "aliases": ["gpt-5"],
+      "inputCents": 131.25,
+      "outputCents": 1050
+    },
+    {
+      "key": "gpt-5-mini",
+      "aliases": ["gpt-5-mini"],
+      "inputCents": 26.25,
+      "outputCents": 210
+    },
+    {
+      "key": "gpt-5-nano",
+      "aliases": ["gpt-5-nano"],
+      "inputCents": 5.25,
+      "outputCents": 42.5
+    },
+    {
+      "key": "gpt-4-1",
+      "aliases": ["gpt-4-1", "gpt-4.1"],
+      "inputCents": 315,
+      "outputCents": 1260
+    },
+    {
+      "key": "gpt-4-1-mini",
+      "aliases": ["gpt-4-1-mini", "gpt-4.1-mini"],
+      "inputCents": 84,
+      "outputCents": 328
+    },
+    {
+      "key": "gpt-4-1-nano",
+      "aliases": ["gpt-4-1-nano", "gpt-4.1-nano"],
+      "inputCents": 21,
+      "outputCents": 84
+    },
+    {
+      "key": "gemini-2-5-flash",
+      "aliases": ["gemini-2-5-flash", "gemini-2.5-flash"],
+      "inputCents": 32.5,
+      "outputCents": 262.5
+    },
+    {
+      "key": "gemini-2-5-flash-lite",
+      "aliases": ["gemini-2-5-flash-lite", "gemini-2.5-flash-lite", "gemini-flash-lite"],
+      "inputCents": 10,
+      "outputCents": 40
+    },
+    {
+      "key": "gemini-2-5-pro",
+      "aliases": ["gemini-2-5-pro", "gemini-2.5-pro"],
+      "inputCents": 262.5,
+      "outputCents": 1575
+    }
+  ],
+  "imagePricing": [
+    {
+      "key": "gemini-2-5-flash-image",
+      "unitCents": 3.9
+    }
+  ]
+}

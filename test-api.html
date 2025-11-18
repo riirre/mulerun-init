@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            color: green;
+        }
+        .error {
+            color: red;
+        }
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            cursor: pointer;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 3px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>MuleRun AI API 测试</h1>
+    
+    <div class="test-section">
+        <h2>API 连接测试</h2>
+        <button onclick="testSessionAPI()">测试 Session API</button>
+        <button onclick="testMeteringAPI()">测试 Metering API</button>
+        <button onclick="testAIAPI()">测试 AI API</button>
+        <button onclick="generateTestURL()">生成测试 URL</button>
+        <div id="results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>测试 URL 生成器</h2>
+        <p>点击下面的按钮生成一个包含所有必需参数的测试 URL：</p>
+        <button onclick="generateTestURL()">生成 MuleRun 测试 URL</button>
+        <div id="url-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>开发环境说明</h2>
+        <p><strong>前端服务器:</strong> http://localhost:5173</p>
+        <p><strong>后端 API:</strong> http://localhost:8788</p>
+        <p><strong>代理配置:</strong> /api/* 请求会被代理到后端服务器</p>
+    </div>
+
+    <script>
+        async function testSessionAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>测试 Session API...</p>';
+            
+            try {
+                const response = await fetch('/api/session');
+                const data = await response.json();
+                
+                if (response.ok) {
+                    resultsDiv.innerHTML = `
+                        <div class="success">
+                            <h3>✅ Session API 工作正常</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="error">
+                            <h3>❌ Session API 返回错误</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Session API 连接失败</h3>
+                        <p>错误: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testMeteringAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>测试 Metering API...</p>';
+            
+            try {
+                const response = await fetch('/api/metering', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sessionId: 'test-session-123',
+                        cost: 0.01,
+                        isFinal: false
+                    })
+                });
+                const data = await response.json();
+                
+                resultsDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ Metering API 响应</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Metering API 连接失败</h3>
+                        <p>错误: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testAIAPI() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = '<p>测试 AI API...</p>';
+            
+            try {
+                const response = await fetch('/api/ai', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        sessionId: 'test-session-123',
+                        prompt: 'Hello, this is a test message.'
+                    })
+                });
+                const data = await response.json();
+                
+                resultsDiv.innerHTML = `
+                    <div class="success">
+                        <h3>✅ AI API 响应</h3>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="error">
+                        <h3>❌ AI API 连接失败</h3>
+                        <p>错误: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        function generateTestURL() {
+            const urlResultsDiv = document.getElementById('url-results');
+            
+            // 生成测试参数
+            const testParams = {
+                userId: 'test-user-' + Math.random().toString(36).substr(2, 9),
+                sessionId: 'test-session-' + Math.random().toString(36).substr(2, 9),
+                agentId: '924751e0-196e-4b22-bdbd-f0a9ac6a4e39',
+                time: Math.floor(Date.now() / 1000).toString(),
+                nonce: 'test-nonce-' + Math.random().toString(36).substr(2, 9),
+                origin: 'mulerun.com',
+                signature: 'test-signature-' + Math.random().toString(36).substr(2, 16)
+            };
+            
+            const baseURL = window.location.origin;
+            const testURL = baseURL + '?' + new URLSearchParams(testParams).toString();
+            
+            urlResultsDiv.innerHTML = `
+                <div class="success">
+                    <h3>✅ 测试 URL 已生成</h3>
+                    <p><strong>测试 URL:</strong></p>
+                    <pre style="word-break: break-all; white-space: pre-wrap;">${testURL}</pre>
+                    <p><strong>参数说明:</strong></p>
+                    <ul>
+                        <li><strong>userId:</strong> ${testParams.userId}</li>
+                        <li><strong>sessionId:</strong> ${testParams.sessionId}</li>
+                        <li><strong>agentId:</strong> ${testParams.agentId}</li>
+                        <li><strong>time:</strong> ${testParams.time}</li>
+                        <li><strong>nonce:</strong> ${testParams.nonce}</li>
+                        <li><strong>origin:</strong> ${testParams.origin}</li>
+                        <li><strong>signature:</strong> ${testParams.signature}</li>
+                    </ul>
+                    <p><strong>注意:</strong> 这是一个测试 URL，签名是模拟的。在生产环境中，签名需要由 MuleRun 平台生成。</p>
+                    <button onclick="window.open('${testURL}', '_blank')">在新标签页中打开测试 URL</button>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

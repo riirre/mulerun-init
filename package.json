@@ -1,0 +1,47 @@
+{
+  "name": "init",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:frontend\" \"npm run dev:backend\"",
+    "dev:frontend": "vite",
+    "dev:backend": "wrangler pages dev dist --compatibility-date=2025-04-01 --port=8788",
+    "build": "tsc && vite build",
+    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
+    "lint:fix": "eslint . --ext ts,tsx --fix --report-unused-disable-directives --max-warnings 0",
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "preview": "vite preview",
+    "pages:dev": "wrangler pages dev dist --compatibility-date=2025-04-01",
+    "pages:deploy": "wrangler pages deploy dist",
+    "deploy": "npm run build && npm run pages:deploy",
+    "init:project": "node ./scripts/init-project.mjs",
+    "create:app": "node ./scripts/create-app.mjs",
+    "kv:create": "wrangler kv namespace create NONCE_KV_INIT",
+    "kv:create-preview": "wrangler kv namespace create NONCE_KV_INIT --preview"
+  },
+  "dependencies": {
+    "jszip": "^3.10.1",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.10.1",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "@typescript-eslint/eslint-plugin": "^7.2.0",
+    "@typescript-eslint/parser": "^7.2.0",
+    "@vitejs/plugin-react": "^4.2.1",
+    "concurrently": "^8.2.2",
+    "eslint": "^8.57.0",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-plugin-react-refresh": "^0.4.6",
+    "jsdom": "^27.2.0",
+    "msw": "^2.12.2",
+    "typescript": "^5.2.2",
+    "vite": "^5.2.0",
+    "vitest": "^1.6.0",
+    "wrangler": "^4.46.0"
+  }
+}

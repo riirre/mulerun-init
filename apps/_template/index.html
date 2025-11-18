@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>新应用模板</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header>
+        <h1>新应用模板</h1>
+        <p>复制该目录并修改文案，即可快速创建新的 MuleRun iframe 页面。</p>
+        <ul class="capabilities">
+          <li>chat：通用对话/补全</li>
+          <li>image_generate：文生图，长时轮询拿结果</li>
+          <li>image_edit：用户上传图 + 提示词实时变换</li>
+        </ul>
+      </header>
+
+      <section class="session">
+        <h2>会话信息</h2>
+        <dl>
+          <div>
+            <dt>用户 ID</dt>
+            <dd id="userIdField">--</dd>
+          </div>
+          <div>
+            <dt>会话 ID</dt>
+            <dd id="sessionIdField">--</dd>
+          </div>
+          <div>
+            <dt>Agent ID</dt>
+            <dd id="agentIdField">--</dd>
+          </div>
+        </dl>
+      </section>
+
+      <section class="split">
+        <div class="interaction">
+          <h2>交互示例</h2>
+        <div class="tabs">
+          <button type="button" class="tab-button active" data-tab="chat">chat</button>
+          <button type="button" class="tab-button" data-tab="image_generate">image_generate</button>
+          <button type="button" class="tab-button" data-tab="image_edit">image_edit</button>
+        </div>
+
+          <div id="chatPane" class="example-pane active" data-operation="chat">
+            <p>向 conversation 注入消息列表，完整走 /api/ai。</p>
+            <form id="promptForm">
+              <label for="promptInput">消息内容</label>
+              <textarea id="promptInput" rows="4" placeholder="请输入提示词..." required></textarea>
+              <button type="submit" id="submitButton">发送</button>
+            </form>
+          </div>
+
+          <div id="imageGeneratePane" class="example-pane" data-operation="image_generate">
+            <p>文生图示例：输入提示词与模型即可。</p>
+            <form id="imageGenerateForm">
+              <label for="imageGeneratePrompt">提示词</label>
+              <textarea
+                id="imageGeneratePrompt"
+                rows="4"
+                placeholder="例如：A cozy room with plants..."
+                required
+              ></textarea>
+              <button type="submit">调用 image_generate</button>
+            </form>
+          </div>
+
+          <div id="imageEditPane" class="example-pane" data-operation="image_edit">
+            <p>
+              图生图示例：上传图片 + 自定义提示词，发送后直接调用 /api/ai
+              image_edit，结果和价格都会在日志展示。
+            </p>
+            <form id="imageEditForm">
+              <label for="imageEditFile">上传图片</label>
+              <input type="file" id="imageEditFile" accept="image/*" />
+              <div class="image-preview" id="imagePreview">
+                <span>未选择图片</span>
+              </div>
+              <label for="imageEditPrompt">提示词</label>
+              <textarea
+                id="imageEditPrompt"
+                rows="4"
+                placeholder="例如：Place the product on a marble table..."
+                required
+              ></textarea>
+              <button type="submit">调用 image_edit</button>
+            </form>
+          </div>
+          <p class="hint">所有请求与响应会记录在右侧日志区，便于查看。</p>
+        </div>
+
+        <aside class="log-wrapper">
+          <h2>实时日志</h2>
+          <div class="log" id="logList" aria-live="polite"></div>
+        </aside>
+      </section>
+    </main>
+
+    <template id="logItemTemplate">
+      <article class="log-item">
+        <header>
+          <span class="badge">TYPE</span>
+          <time></time>
+        </header>
+        <p></p>
+      </article>
+    </template>
+
+    <script type="module" src="./main.js"></script>
+  </body>
+</html>

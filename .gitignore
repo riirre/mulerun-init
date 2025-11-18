@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+dist/
+
+# Environment variables
+.dev.vars
+mulerun-config.env
+
+# Logs
+*.log
+
+# OS generated files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Build outputs
+build/
+
+.wrangler/
