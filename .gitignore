@@ -5,6 +5,7 @@ dist/
 # Environment variables
 .dev.vars
 mulerun-config.env
+wrangler.toml
 
 # Logs
 *.log

@@ -23,14 +23,22 @@ cp .dev.vars.example .dev.vars
 
 按需填写 `AGENT_KEY`、`MULERUN_API_KEY` 等变量。
 
-### 3) 准备 KV 命名空间
+### 3) 配置 Wrangler（生产环境）
+
+```bash
+cp wrangler.toml.example wrangler.toml
+```
+
+复制模板文件后，按生产环境填写 `wrangler.toml`（Cloudflare Pages 项目名、KV 命名空间 ID、`AGENT_ID` 等变量），再执行部署命令。
+
+### 4) 准备 KV 命名空间
 
 ```bash
 wrangler kv namespace create NONCE_KV_INIT
 wrangler kv namespace create NONCE_KV_INIT --preview
 ```
 
-### 4) 本地开发
+### 5) 本地开发
 
 ```bash
 npm run build   # 先构建一次，供 Functions 读取
@@ -40,7 +48,7 @@ npm run dev     # 同时启动 Vite (前端) + Wrangler (后端)
 - 壳应用（展示会话信息 + iframe）：http://localhost:5173
 - 默认 iframe 页面：http://localhost:5173/apps/init/index.html
 
-### 5) 构建与部署
+### 6) 构建与部署
 
 ```bash
 npm run build
@@ -61,8 +69,7 @@ npm run pages:deploy
 | `SESSION_ALLOWED_ORIGINS` | 允许会话来源的域名白名单（逗号分隔，默认 `mulerun.com`，可加入 `localhost` 或 `*`） |
 | `SESSION_TTL_SECONDS` | （可选）KV 中的会话存活时间（单位秒，默认 3600，范围 60-604800） |
 | `SESSION_VALIDATION_DISABLED` | （可选）设为 `true`/`1` 时关闭所有会话校验，方便纯本地测试 |
-| `CLOUDFLARE_ASSET_BASE_URL` | （可选）Cloudflare R2 / Pages 静态资源访问域名 |
-| `ASSET_HOST_ALLOWLIST` | （可选）允许直连的图片域名（逗号分隔） |
+
 
 生产环境建议通过 `wrangler secret put <NAME>` 注入敏感变量。
 
