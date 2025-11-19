@@ -71,7 +71,7 @@ npm run pages:deploy
 | `SESSION_VALIDATION_DISABLED` | （可选）设为 `true`/`1` 时关闭所有会话校验，方便纯本地测试 |
 
 
-生产环境建议通过 `wrangler secret put <NAME>` 注入敏感变量。
+生产环境建议通过 `wrangler pages secret put <NAME>` 注入敏感变量。
 
 ## 模板应用与脚本
 

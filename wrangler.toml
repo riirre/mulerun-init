@@ -7,11 +7,10 @@ compatibility_date = "2025-10-24"
 compatibility_date = "2025-04-01"
 
 [env.production.vars]
-AGENT_ID = "<your-agent-id>"
+AGENT_ID = "ef1e35f6-9e85-4c4c-9663-72d15fcf389c"
 METERING_ENDPOINT = "https://mulerun.com/v1/metering/report"
-PRICING_MARKUP_MULTIPLIER = "1"
-ASSET_HOST_ALLOWLIST = "localhost"
+PRICING_MARKUP_MULTIPLIER = "4"
 
 [[env.production.kv_namespaces]]
-id = "<your-kv-id>"
+id = "5d97323b190346c18a682b133f399d97"
 binding = "NONCE_KV_INIT"

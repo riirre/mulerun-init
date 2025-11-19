@@ -6,6 +6,7 @@ const session = {
   sessionId: params.get('sessionId') ?? 'dev-session-456',
   agentId: params.get('agentId') ?? 'dev-agent-789',
 };
+const sessionToken = params.get('sessionToken')?.trim() ?? '';
 
 const userIdField = document.getElementById('userIdField');
 const sessionIdField = document.getElementById('sessionIdField');
@@ -53,7 +54,11 @@ chatForm.addEventListener('submit', async (event) => {
     const response = await fetch('/api/ai', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ sessionId: session.sessionId, prompt }),
+      body: JSON.stringify({
+        sessionId: session.sessionId,
+        sessionToken: sessionToken || undefined,
+        prompt,
+      }),
     });
 
     const result = await response.json();
@@ -170,7 +175,7 @@ async function runExample(operation, payload) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sessionId: session.sessionId,
-        sessionToken: params.get('sessionToken') || undefined,
+        sessionToken: sessionToken || undefined,
         operation,
         payload,
       }),
