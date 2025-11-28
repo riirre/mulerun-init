@@ -11,17 +11,17 @@ import {
 
 
 
-export const onRequestGet: PagesFunctionWithEnv = async (context) => {
-  const url = new URL(context.request.url);
+export async function handleSessionGet(request: Request, env: Env) {
+  const url = new URL(request.url);
   const params = Object.fromEntries(url.searchParams);
-  const fingerprint = computeRequestFingerprint(context.request);
-  const bypassAuth = isSessionValidationDisabled(context.env);
+  const fingerprint = computeRequestFingerprint(request);
+  const bypassAuth = isSessionValidationDisabled(env);
 
   if (bypassAuth) {
     const session = {
       userId: params.userId?.trim() || 'dev-user',
       sessionId: params.sessionId?.trim() || 'dev-session',
-      agentId: params.agentId?.trim() || context.env.AGENT_ID || 'dev-agent',
+      agentId: params.agentId?.trim() || env.AGENT_ID || 'dev-agent',
     };
     const token = params.sessionToken?.trim() || 'dev-token';
 
@@ -41,12 +41,12 @@ export const onRequestGet: PagesFunctionWithEnv = async (context) => {
       }
     }
 
-    const reused = await tryReuseAuthorizedSession(context.env, params, fingerprint);
+    const reused = await tryReuseAuthorizedSession(env, params, fingerprint);
     if (reused) {
       return Response.json(reused);
     }
 
-    const verification = await verifySignature(params, context.env.AGENT_KEY);
+    const verification = await verifySignature(params, env.AGENT_KEY);
     if (!verification.valid) {
       if (params.debug === '1' || params.debug === 'true') {
         return Response.json(
@@ -63,7 +63,7 @@ export const onRequestGet: PagesFunctionWithEnv = async (context) => {
       return Response.json({ error: 'Timestamp expired' }, { status: 401 });
     }
 
-    const nonceStore = getNonceStore(context.env);
+    const nonceStore = getNonceStore(env);
     const nonceKey = `nonce:${params.nonce}`;
     const exists = await nonceStore.get(nonceKey);
     if (exists) {
@@ -74,7 +74,7 @@ export const onRequestGet: PagesFunctionWithEnv = async (context) => {
     const sessionToken = generateSessionToken();
 
     await persistAuthorizedSession(
-      context.env,
+      env,
       {
         sessionId: params.sessionId,
         userId: params.userId,
@@ -101,7 +101,9 @@ export const onRequestGet: PagesFunctionWithEnv = async (context) => {
     const status = message && message.toLowerCase().includes('origin') ? 401 : 500;
     return Response.json({ error: message }, { status });
   }
-};
+}
+
+export const onRequestGet: PagesFunctionWithEnv = async (context) => handleSessionGet(context.request, context.env);
 
 
 

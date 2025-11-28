@@ -1,4 +1,4 @@
-import { PagesFunctionWithEnv } from '../types';
+import { Env, PagesFunctionWithEnv } from '../types';
 import { getMarkupMultiplier } from '../pricing';
 import { computeRequestFingerprint, ensureAuthorizedSession, isSessionValidationDisabled } from '../session-store';
 import { deriveImageCount } from '../services/metering';
@@ -32,16 +32,16 @@ interface AiRequest {
   };
 }
 
-export const onRequestPost: PagesFunctionWithEnv = async (context) => {
-  const logger = createLogger(context.env, 'api/ai');
+export async function handleAiPost(request: Request, env: Env) {
+  const logger = createLogger(env, 'api/ai');
   try {
-    const apiToken = context.env.MULERUN_API_KEY;
+    const apiToken = env.MULERUN_API_KEY;
     if (!apiToken) {
       return Response.json({ error: 'MULERUN_API_KEY not configured' }, { status: 500 });
     }
 
-    const body = (await context.request.json()) as AiRequest;
-    const bypassAuth = isSessionValidationDisabled(context.env);
+    const body = (await request.json()) as AiRequest;
+    const bypassAuth = isSessionValidationDisabled(env);
 
     const rawSessionId = typeof body.sessionId === 'string' ? body.sessionId.trim() : '';
     const sessionId = rawSessionId || (bypassAuth ? 'dev-session' : '');
@@ -55,10 +55,10 @@ export const onRequestPost: PagesFunctionWithEnv = async (context) => {
       return Response.json({ error: 'Missing session token' }, { status: 401 });
     }
 
-    const fingerprint = computeRequestFingerprint(context.request);
-    const originCandidates = collectRequestOriginCandidates(context.request);
+    const fingerprint = computeRequestFingerprint(request);
+    const originCandidates = collectRequestOriginCandidates(request);
     if (!bypassAuth || sessionToken) {
-      await ensureAuthorizedSession(context.env, sessionId, {
+      await ensureAuthorizedSession(env, sessionId, {
         token: sessionToken,
         fingerprint,
         origin: originCandidates[0] ?? null,
@@ -79,9 +79,9 @@ export const onRequestPost: PagesFunctionWithEnv = async (context) => {
     const pollTimeoutMs = body.options?.pollTimeoutMs ?? DEFAULT_POLL_TIMEOUT_MS;
 
     if (operation === 'chat') {
-      const chatResult = await runChatOperation(context.env, payload);
+      const chatResult = await runChatOperation(env, payload);
       const metering = await maybeReportMetering(
-        context.request.url,
+        request.url,
         sessionId,
         sessionToken,
         {
@@ -89,12 +89,12 @@ export const onRequestPost: PagesFunctionWithEnv = async (context) => {
           type: 'chat',
           model: chatResult.model,
           usage: chatResult.usage,
-          markupMultiplier: chatResult.pricing?.markup ?? getMarkupMultiplier(context.env),
+          markupMultiplier: chatResult.pricing?.markup ?? getMarkupMultiplier(env),
         },
         {
           fingerprint,
           logger,
-          internalToken: context.env.INTERNAL_METERING_TOKEN,
+          internalToken: env.INTERNAL_METERING_TOKEN,
         }
       );
 
@@ -111,7 +111,7 @@ export const onRequestPost: PagesFunctionWithEnv = async (context) => {
 
     if (operation === 'image_generate') {
       const imageResult = await runImageTask({
-        env: context.env,
+        env,
         kind: 'generation',
         payload,
         pollIntervalMs,
@@ -119,7 +119,7 @@ export const onRequestPost: PagesFunctionWithEnv = async (context) => {
       });
 
       const metering = await maybeReportMetering(
-        context.request.url,
+        request.url,
         sessionId,
         sessionToken,
         {
@@ -128,12 +128,12 @@ export const onRequestPost: PagesFunctionWithEnv = async (context) => {
           model: imageResult.pricing?.pricing?.modelKey,
           usage: imageResult.usage,
           images: imageResult.pricing?.images ?? imageResult.images.length,
-          markupMultiplier: imageResult.pricing?.markup ?? getMarkupMultiplier(context.env),
+          markupMultiplier: imageResult.pricing?.markup ?? getMarkupMultiplier(env),
         },
         {
           fingerprint,
           logger,
-          internalToken: context.env.INTERNAL_METERING_TOKEN,
+          internalToken: env.INTERNAL_METERING_TOKEN,
         }
       );
 
@@ -151,7 +151,7 @@ export const onRequestPost: PagesFunctionWithEnv = async (context) => {
 
     if (operation === 'image_edit') {
       const imageResult = await runImageTask({
-        env: context.env,
+        env,
         kind: 'edit',
         payload,
         pollIntervalMs,
@@ -159,7 +159,7 @@ export const onRequestPost: PagesFunctionWithEnv = async (context) => {
       });
 
       const metering = await maybeReportMetering(
-        context.request.url,
+        request.url,
         sessionId,
         sessionToken,
         {
@@ -168,12 +168,12 @@ export const onRequestPost: PagesFunctionWithEnv = async (context) => {
           model: imageResult.pricing?.pricing?.modelKey,
           usage: imageResult.usage,
           images: imageResult.pricing?.images ?? imageResult.images.length,
-          markupMultiplier: imageResult.pricing?.markup ?? getMarkupMultiplier(context.env),
+          markupMultiplier: imageResult.pricing?.markup ?? getMarkupMultiplier(env),
         },
         {
           fingerprint,
           logger,
-          internalToken: context.env.INTERNAL_METERING_TOKEN,
+          internalToken: env.INTERNAL_METERING_TOKEN,
         }
       );
 
@@ -194,7 +194,9 @@ export const onRequestPost: PagesFunctionWithEnv = async (context) => {
     logger.error('Failed to call MuleRun API', error);
     return Response.json({ error: (error as Error).message }, { status: 500 });
   }
-};
+}
+
+export const onRequestPost: PagesFunctionWithEnv = async (context) => handleAiPost(context.request, context.env);
 
 type MeteringDetail = {
   cost?: number;

@@ -1,4 +1,4 @@
-import { PagesFunctionWithEnv } from '../types';
+import { Env, PagesFunctionWithEnv } from '../types';
 import { computeRequestFingerprint, ensureAuthorizedSession, isSessionValidationDisabled } from '../session-store';
 import { resolveMeteringCost } from '../services/metering';
 import type { MeteringCalculationInput } from '../services/metering';
@@ -15,11 +15,11 @@ interface MeteringRequestBody extends MeteringCalculationInput {
   fingerprint?: string;
 }
 
-export const onRequestPost: PagesFunctionWithEnv = async (context) => {
-  const logger = createLogger(context.env, 'api/metering');
+export async function handleMeteringPost(request: Request, env: Env) {
+  const logger = createLogger(env, 'api/metering');
   try {
-    const body = (await context.request.json()) as MeteringRequestBody;
-    const bypassAuth = isSessionValidationDisabled(context.env);
+    const body = (await request.json()) as MeteringRequestBody;
+    const bypassAuth = isSessionValidationDisabled(env);
     const { sessionToken: rawToken, isFinal = false } = body;
     logger.debug('POST received', {
       sessionId: body.sessionId,
@@ -42,9 +42,9 @@ export const onRequestPost: PagesFunctionWithEnv = async (context) => {
       return Response.json({ error: 'Missing session token' }, { status: 401 });
     }
 
-    if (body.fingerprint && context.env.INTERNAL_METERING_TOKEN) {
-      const headerToken = context.request.headers.get('X-Internal-Metering');
-      if (headerToken !== context.env.INTERNAL_METERING_TOKEN) {
+    if (body.fingerprint && env.INTERNAL_METERING_TOKEN) {
+      const headerToken = request.headers.get('X-Internal-Metering');
+      if (headerToken !== env.INTERNAL_METERING_TOKEN) {
         return Response.json({ error: 'Unauthorized internal metering request' }, { status: 403 });
       }
     }
@@ -52,15 +52,15 @@ export const onRequestPost: PagesFunctionWithEnv = async (context) => {
     if (!bypassAuth || sessionToken) {
       const providedFingerprint =
         typeof body.fingerprint === 'string' && body.fingerprint.trim() ? body.fingerprint.trim() : null;
-      const fingerprint = providedFingerprint ?? computeRequestFingerprint(context.request);
-      await ensureAuthorizedSession(context.env, sessionId, {
+      const fingerprint = providedFingerprint ?? computeRequestFingerprint(request);
+      await ensureAuthorizedSession(env, sessionId, {
         token: sessionToken,
         fingerprint,
-        origin: context.request.headers.get('Origin'),
+        origin: request.headers.get('Origin'),
       });
     }
 
-    const resolved = resolveMeteringCost(context.env, body);
+    const resolved = resolveMeteringCost(env, body);
     if (!Number.isFinite(resolved.cost) || resolved.cost <= 0) {
       return Response.json({ error: 'Invalid cost or insufficient pricing data' }, { status: 400 });
     }
@@ -73,7 +73,7 @@ export const onRequestPost: PagesFunctionWithEnv = async (context) => {
     const upstreamCost = creditsToUsageUnits(resolved.cost);
 
     const payload = {
-      agentId: context.env.AGENT_ID,
+      agentId: env.AGENT_ID,
       sessionId,
       cost: upstreamCost,
       timestamp: new Date().toISOString(),
@@ -87,10 +87,10 @@ export const onRequestPost: PagesFunctionWithEnv = async (context) => {
       isFinal,
     });
 
-    const response = await fetch(context.env.METERING_ENDPOINT, {
+    const response = await fetch(env.METERING_ENDPOINT, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${context.env.AGENT_KEY}`,
+        Authorization: `Bearer ${env.AGENT_KEY}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify(payload),
@@ -128,12 +128,12 @@ export const onRequestPost: PagesFunctionWithEnv = async (context) => {
     logger.error('POST error', error);
     return Response.json({ error: (error as Error).message }, { status: 500 });
   }
-};
+}
 
-export const onRequestGet: PagesFunctionWithEnv = async (context) => {
-  const logger = createLogger(context.env, 'api/metering');
+export async function handleMeteringGet(request: Request, env: Env) {
+  const logger = createLogger(env, 'api/metering');
   try {
-    const url = new URL(context.request.url);
+    const url = new URL(request.url);
     const sessionId = url.searchParams.get('sessionId');
     const sessionToken = url.searchParams.get('sessionToken')?.trim();
     logger.debug('GET request', { sessionId });
@@ -144,19 +144,19 @@ export const onRequestGet: PagesFunctionWithEnv = async (context) => {
       return Response.json({ error: 'Missing session token' }, { status: 401 });
     }
 
-    const fingerprint = computeRequestFingerprint(context.request);
-    await ensureAuthorizedSession(context.env, sessionId, {
+    const fingerprint = computeRequestFingerprint(request);
+    await ensureAuthorizedSession(env, sessionId, {
       token: sessionToken,
       fingerprint,
-      origin: context.request.headers.get('Origin'),
+      origin: request.headers.get('Origin'),
     });
 
-    const base = (context.env.METERING_GET_ENDPOINT || DEFAULT_GET_ENDPOINT).replace(/\/$/, '');
+    const base = (env.METERING_GET_ENDPOINT || DEFAULT_GET_ENDPOINT).replace(/\/$/, '');
     const targetUrl = `${base}/${sessionId}`;
 
     const response = await fetch(targetUrl, {
       headers: {
-        Authorization: `Bearer ${context.env.AGENT_KEY}`,
+        Authorization: `Bearer ${env.AGENT_KEY}`,
       },
     });
 
@@ -178,4 +178,9 @@ export const onRequestGet: PagesFunctionWithEnv = async (context) => {
     logger.error('GET error', error);
     return Response.json({ error: (error as Error).message }, { status: 500 });
   }
-};
+}
+
+export const onRequestPost: PagesFunctionWithEnv = async (context) =>
+  handleMeteringPost(context.request, context.env);
+
+export const onRequestGet: PagesFunctionWithEnv = async (context) => handleMeteringGet(context.request, context.env);

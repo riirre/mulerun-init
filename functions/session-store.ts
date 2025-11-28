@@ -140,12 +140,13 @@ export async function ensureAuthorizedSession(env: Env, sessionId: string, optio
 
 export function computeRequestFingerprint(request: Request) {
   const userAgent = request.headers.get('User-Agent') ?? '';
-  const ip = request.headers.get('CF-Connecting-IP') ?? '';
+  const cfIp = request.headers.get('CF-Connecting-IP') ?? '';
+  const forwardedIp = request.headers.get('X-Forwarded-For') ?? '';
   const acceptLanguage = request.headers.get('Accept-Language') ?? '';
   const acceptEncoding = request.headers.get('Accept-Encoding') ?? '';
   const hint = request.headers.get('Sec-CH-UA') ?? '';
 
-  return `${userAgent}|${ip}|${acceptLanguage}|${acceptEncoding}|${hint}`;
+  return `${userAgent}|${cfIp}|${forwardedIp}|${acceptLanguage}|${acceptEncoding}|${hint}`;
 }
 
 export function generateSessionToken() {
